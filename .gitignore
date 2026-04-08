@@ -1,0 +1,8 @@
+# Nextflow runtime artifacts
+.nextflow/
+.nextflow.log*
+work/
+nextflow
+
+# Pipeline outputs
+results/

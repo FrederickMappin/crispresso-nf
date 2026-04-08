@@ -2,6 +2,7 @@ nextflow.enable.dsl=2
 
 params.samplesheet = null
 params.outdir = 'results'
+params.fastp_extra = ''
 params.crispresso_extra = ''
 
 if ( !params.samplesheet ) {
@@ -50,13 +51,44 @@ Channel
     }
     .set { crispresso_input_ch }
 
+process FASTP {
+        tag "${sample_id}"
+
+        publishDir "${params.outdir}/fastp", mode: 'copy', pattern: '*.fastp.*'
+
+        cpus 2
+        memory '4 GB'
+
+        input:
+        tuple val(sample_id), path(read1), path(read2), val(amplicon), val(guide)
+
+        output:
+        tuple val(sample_id), path("${sample_id}_trimmed_R1.fastq.gz"), path("${sample_id}_trimmed_R2.fastq.gz"), val(amplicon), val(guide), emit: trimmed_reads
+        path "${sample_id}.fastp.html", emit: html
+        path "${sample_id}.fastp.json", emit: json
+
+        script:
+        def extra = params.fastp_extra ?: ''
+        """
+        fastp \
+            --thread ${task.cpus} \
+            --in1 ${read1} \
+            --in2 ${read2} \
+            --out1 ${sample_id}_trimmed_R1.fastq.gz \
+            --out2 ${sample_id}_trimmed_R2.fastq.gz \
+            --html ${sample_id}.fastp.html \
+            --json ${sample_id}.fastp.json \
+            ${extra}
+        """
+}
+
 process CRISPRESSO {
     tag "${sample_id}"
 
     publishDir params.outdir, mode: 'copy', pattern: 'CRISPResso_on_*'
 
-    cpus 4
-    memory '8 GB'
+    cpus 2
+    memory '4 GB'
 
     input:
     tuple val(sample_id), path(read1), path(read2), val(amplicon), val(guide)
@@ -79,5 +111,6 @@ process CRISPRESSO {
 }
 
 workflow {
-    CRISPRESSO(crispresso_input_ch)
+    FASTP(crispresso_input_ch)
+    CRISPRESSO(FASTP.out.trimmed_reads)
 }
