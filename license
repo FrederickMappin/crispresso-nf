@@ -1,0 +1,24 @@
+# robots.txt - Web crawler instructions
+# Note: This has limited effect on GitHub repos but may help with web indexing
+
+User-agent: *
+Disallow: /
+
+# Specifically disallow common AI/ML crawlers
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
